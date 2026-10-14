@@ -1,0 +1,18 @@
+{
+  "nome": "Anatel Consulta",
+  "descricao": "Consulta de produtos homologados pela Anatel por número de homologação, a partir de uma planilha CSV importada manualmente.",
+  "categoria": "analise",
+  "health_check_path": "/health",
+  "alcance": "time",
+  "fatores": {
+    "altera_outra_app": false,
+    "expoe_api": false,
+    "tem_llm": false,
+    "dado_sensivel": false,
+    "credencial_servico": false,
+    "sem_identidade": false
+  },
+  "identidade": "db1",
+  "declarado_por": "kenzo.yamamoto@db1.com.br",
+  "declarado_em": "2026-09-24"
+}

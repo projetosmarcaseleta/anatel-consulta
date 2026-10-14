@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AnatelHomologacao {
+  id                   Int       @id @default(autoincrement())
+  numeroHomologacao    String    @map("numero_homologacao")
+  numeroNormalizado    String    @map("numero_normalizado")
+  nomeFabricante       String?   @map("nome_fabricante")
+  modelo               String?
+  nomeComercial        String?   @map("nome_comercial")
+  situacaoRequerimento String?   @map("situacao_requerimento")
+  tipoProduto          String?   @map("tipo_produto")
+  paisFabricante       String?   @map("pais_fabricante")
+  dataHomologacao      DateTime? @map("data_homologacao") @db.Date
+  importadoEm          DateTime  @default(now()) @map("importado_em")
+
+  @@index([numeroNormalizado])
+  @@map("anatel_homologacoes")
+}
+
+model Importacao {
+  id          Int      @id @default(autoincrement())
+  nomeArquivo String   @map("nome_arquivo")
+  totalLinhas Int      @map("total_linhas")
+  importadoEm DateTime @default(now()) @map("importado_em")
+
+  @@map("importacoes")
+}

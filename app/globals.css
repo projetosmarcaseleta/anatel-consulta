@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Os tokens de cor por tema vivem em lib/tema.ts (a tela troca claro/escuro em JS). */
+
+body {
+  margin: 0;
+  background: #e9f5ff;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+a {
+  color: #0075ff;
+}
+
+a:hover {
+  color: #2793ff;
+}
+
+.ab-btn-primario {
+  background: #0075ff;
+}
+
+.ab-btn-primario:hover:not(:disabled) {
+  background: #2793ff;
+}
+
+.ab-copiar:hover {
+  background: rgba(138, 159, 215, 0.22) !important;
+}
+
+.ab-copiar:focus-visible {
+  outline: 2px solid #0075ff;
+  outline-offset: 1px;
+}
+
+.ab-pulso {
+  animation: ab-pulso 1.2s ease-in-out infinite;
+}
+
+@keyframes ab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ab-pulso {
+  50% {
+    opacity: 0.55;
+  }
+}

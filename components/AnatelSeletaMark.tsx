@@ -1,0 +1,46 @@
+type Props = {
+  base: string;
+  burst: string;
+  hub?: string;
+  weight?: number;
+  size?: number;
+};
+
+export default function AnatelSeletaMark({ base, burst, hub = '#0075FF', weight = 4, size = 34 }: Props) {
+  return (
+    <svg
+      viewBox="-10 -14 120 112"
+      width={size}
+      height={size}
+      style={{ display: 'block', overflow: 'visible' }}
+      aria-hidden="true"
+    >
+      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path
+          d="M50 40 L24.4 12.1 M50 40 L75.6 12.1 M50 40 L100 36.1 M50 40 L50 87.9 M50 40 L0 36.1"
+          stroke={base}
+          strokeWidth={weight}
+          opacity={0.55}
+        />
+        <path
+          d="M4.99 31.19 L19.41 17.01 Q24.4 12.1 31.4 12.1 L68.6 12.1 Q75.6 12.1 80.59 17.01 L95.01 31.19 Q100 36.1 95.14 41.14 L54.86 82.86 Q50 87.9 45.14 82.86 L4.86 41.14 Q0 36.1 4.99 31.19 Z"
+          stroke={base}
+          strokeWidth={weight}
+        />
+        <g fill={base} stroke="none">
+          <circle cx="24.4" cy="12.1" r="6" />
+          <circle cx="75.6" cy="12.1" r="6" />
+          <circle cx="100" cy="36.1" r="6" />
+          <circle cx="50" cy="87.9" r="6" />
+          <circle cx="0" cy="36.1" r="6" />
+        </g>
+        <circle cx="50" cy="40" r="10" fill={hub} stroke="none" />
+        <path
+          d="M71.23 -5.69Q69.65 -7.75 68.33 -5.51L65.83 -1.27Q64.51 0.97 62.02 0.22L57.30 -1.18Q54.81 -1.93 55.06 0.66L55.53 5.56Q55.78 8.15 53.32 9.01L48.68 10.65Q46.23 11.51 47.95 13.46L51.21 17.15Q52.93 19.10 51.46 21.24L48.66 25.29Q47.18 27.43 49.72 27.99L54.53 29.06Q57.07 29.62 57.13 32.22L57.25 37.15Q57.31 39.74 59.70 38.71L64.21 36.75Q66.60 35.71 68.18 37.78L71.17 41.69Q72.75 43.75 74.07 41.51L76.57 37.27Q77.89 35.03 80.38 35.78L85.10 37.18Q87.59 37.93 87.34 35.34L86.87 30.44Q86.62 27.85 89.08 26.99L93.72 25.35Q96.17 24.49 94.45 22.54L91.19 18.85Q89.47 16.90 90.94 14.76L93.74 10.71Q95.22 8.57 92.68 8.01L87.87 6.94Q85.33 6.38 85.27 3.78L85.15 -1.15Q85.09 -3.74 82.70 -2.71L78.19 -0.75Q75.80 0.29 74.22 -1.78Z"
+          fill={burst}
+          stroke="none"
+        />
+      </g>
+    </svg>
+  );
+}
