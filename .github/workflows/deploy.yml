@@ -21,31 +21,68 @@ jobs:
           script: |
             set -e
 
-            TARGET_DIR="$HOME/anatel-consulta"
-
-            if [ ! -d "$TARGET_DIR" ]; then
-              echo "📦 Pasta não encontrada. Clonando repositório pela primeira vez..."
-              git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$TARGET_DIR"
-              cd "$TARGET_DIR"
-
-              if [ ! -f ".env" ]; then
-                echo "⚙️ Criando .env a partir de .env.example..."
-                cp .env.example .env
-              fi
-
-              echo "🐳 Subindo banco de dados e aplicação..."
-              docker compose up -d --build
-            else
-              cd "$TARGET_DIR"
-
-              echo "⬇️ Atualizando código..."
-              git pull https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
-
-              echo "🐳 Reconstruindo aplicação..."
-              docker compose up -d --build app
+            echo "🔍 [1/6] Validando ambiente Docker na VPS..."
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "❌ ERRO: O comando 'docker' não está instalado nesta VPS."
+              exit 1
             fi
 
-            echo "🧹 Limpando imagens antigas..."
+            if ! docker info >/dev/null 2>&1; then
+              echo "❌ ERRO: O Docker daemon não está rodando ou o usuário não pertence ao grupo docker."
+              echo "Execute na VPS: sudo usermod -aG docker \$USER && sudo systemctl restart docker"
+              exit 1
+            fi
+
+            # Detecta se a VPS usa 'docker compose' (v2) ou 'docker-compose' (v1)
+            if docker compose version >/dev/null 2>&1; then
+              COMPOSE_CMD="docker compose"
+            elif command -v docker-compose >/dev/null 2>&1; then
+              COMPOSE_CMD="docker-compose"
+            else
+              echo "⚠️ Docker compose não encontrado. Tentando instalar o plugin oficial..."
+              sudo apt-get update && sudo apt-get install -y docker-compose-plugin || true
+              if docker compose version >/dev/null 2>&1; then
+                COMPOSE_CMD="docker compose"
+              elif command -v docker-compose >/dev/null 2>&1; then
+                COMPOSE_CMD="docker-compose"
+              else
+                echo "❌ ERRO: Não foi possível encontrar nem instalar o Docker Compose na VPS."
+                exit 1
+              fi
+            fi
+
+            echo "✅ Compose detectado: '$COMPOSE_CMD' ($($COMPOSE_CMD version))"
+
+            TARGET_DIR="$HOME/anatel-consulta"
+
+            echo "📁 [2/6] Verificando diretório do projeto ($TARGET_DIR)..."
+            if [ ! -d "$TARGET_DIR" ]; then
+              echo "📦 Diretório não encontrado. Clonando repositório..."
+              git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$TARGET_DIR"
+              cd "$TARGET_DIR"
+            else
+              cd "$TARGET_DIR"
+              echo "⬇️ Puxando as últimas alterações..."
+              git pull https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
+            fi
+
+            echo "⚙️ [3/6] Validando arquivo .env..."
+            if [ ! -f ".env" ]; then
+              echo "📄 .env ausente. Gerando a partir de .env.example..."
+              cp .env.example .env
+            fi
+
+            echo "🩺 [4/6] Validando sintaxe do docker-compose..."
+            $COMPOSE_CMD config -q
+
+            echo "🐳 [5/6] Construindo e subindo os containers..."
+            $COMPOSE_CMD up -d --build
+
+            echo "📊 [6/6] Verificando status dos containers..."
+            sleep 3
+            $COMPOSE_CMD ps
+
+            echo "🧹 Limpando imagens antigas não utilizadas..."
             docker image prune -f
 
-            echo "✅ Deploy concluído com sucesso!"
+            echo "🎉 Deploy concluído com sucesso!"
