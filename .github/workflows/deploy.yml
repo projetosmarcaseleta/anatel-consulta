@@ -21,21 +21,29 @@ jobs:
           script: |
             set -e
 
-            # Procura a pasta do projeto em ~/anatel-consulta ou /var/www/anatel-consulta
-            if [ -d "$HOME/anatel-consulta" ]; then
-              cd "$HOME/anatel-consulta"
-            elif [ -d "/var/www/anatel-consulta" ]; then
-              cd "/var/www/anatel-consulta"
+            TARGET_DIR="$HOME/anatel-consulta"
+
+            if [ ! -d "$TARGET_DIR" ]; then
+              echo "📦 Pasta não encontrada. Clonando repositório pela primeira vez..."
+              git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$TARGET_DIR"
+              cd "$TARGET_DIR"
+
+              if [ ! -f ".env" ]; then
+                echo "⚙️ Criando .env a partir de .env.example..."
+                cp .env.example .env
+              fi
+
+              echo "🐳 Subindo banco de dados e aplicação..."
+              docker compose up -d --build
             else
-              echo "Pasta anatel-consulta não encontrada em $HOME ou /var/www"
-              exit 1
+              cd "$TARGET_DIR"
+
+              echo "⬇️ Atualizando código..."
+              git pull https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
+
+              echo "🐳 Reconstruindo aplicação..."
+              docker compose up -d --build app
             fi
-
-            echo "⬇️ Atualizando código..."
-            git pull origin main
-
-            echo "🐳 Reconstruindo aplicação..."
-            docker compose up -d --build app
 
             echo "🧹 Limpando imagens antigas..."
             docker image prune -f
