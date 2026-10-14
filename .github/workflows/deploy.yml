@@ -56,20 +56,24 @@ jobs:
             TARGET_DIR="$HOME/anatel-consulta"
 
             echo "📁 [2/6] Verificando diretório do projeto ($TARGET_DIR)..."
+            REPO_URL="https://github.com/${{ github.repository }}.git"
+            # Token só vive na memória deste comando (header HTTP): não vai para a URL nem para o .git/config
+            AUTH_HEADER="Authorization: Basic $(printf 'x-access-token:%s' '${{ secrets.GITHUB_TOKEN }}' | base64 -w0)"
             if [ ! -d "$TARGET_DIR" ]; then
               echo "📦 Diretório não encontrado. Clonando repositório..."
-              git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git "$TARGET_DIR"
+              git -c http.extraHeader="$AUTH_HEADER" clone "$REPO_URL" "$TARGET_DIR"
               cd "$TARGET_DIR"
             else
               cd "$TARGET_DIR"
               echo "⬇️ Puxando as últimas alterações..."
-              git pull https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
+              git -c http.extraHeader="$AUTH_HEADER" pull "$REPO_URL" main
             fi
 
             echo "⚙️ [3/6] Validando arquivo .env..."
             if [ ! -f ".env" ]; then
-              echo "📄 .env ausente. Gerando a partir de .env.example..."
-              cp .env.example .env
+              echo "❌ ERRO: .env ausente na VPS ($TARGET_DIR/.env)."
+              echo "Crie-o a partir do .env.example e defina uma POSTGRES_PASSWORD forte (e a mesma senha em DATABASE_URL/DIRECT_URL)."
+              exit 1
             fi
 
             echo "🩺 [4/6] Validando sintaxe do docker-compose..."
