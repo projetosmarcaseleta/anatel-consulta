@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: anatel_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-anatel_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-anatel_secret_pwd}
+      POSTGRES_DB: ${POSTGRES_DB:-anatelbase}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - anatel_net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: anatel_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:-postgresql://anatel_user:anatel_secret_pwd@db:5432/anatelbase}
+      DIRECT_URL: ${DIRECT_URL:-postgresql://anatel_user:anatel_secret_pwd@db:5432/anatelbase}
+    ports:
+      # Mapeia na interface local (127.0.0.1) na porta 3035 (ou definida em APP_PORT no .env)
+      # para não conflitar com a porta 3000 já em uso na VPS
+      - "127.0.0.1:${APP_PORT:-3035}:3000"
+    networks:
+      - anatel_net
+
+volumes:
+  postgres_data:
+
+networks:
+  anatel_net:
+    driver: bridge

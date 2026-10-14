@@ -1,0 +1,43 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Executar deploy via SSH na VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+
+            # Procura a pasta do projeto em ~/anatel-consulta ou /var/www/anatel-consulta
+            if [ -d "$HOME/anatel-consulta" ]; then
+              cd "$HOME/anatel-consulta"
+            elif [ -d "/var/www/anatel-consulta" ]; then
+              cd "/var/www/anatel-consulta"
+            else
+              echo "Pasta anatel-consulta não encontrada em $HOME ou /var/www"
+              exit 1
+            fi
+
+            echo "⬇️ Atualizando código..."
+            git pull origin main
+
+            echo "🐳 Reconstruindo aplicação..."
+            docker compose up -d --build app
+
+            echo "🧹 Limpando imagens antigas..."
+            docker image prune -f
+
+            echo "✅ Deploy concluído com sucesso!"
